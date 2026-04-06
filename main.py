@@ -1,42 +1,34 @@
 # entry point, start cli
 
-from app.db import (
-    get_connection,
-    execute_non_query,
-    execute_query,
-    close_connection
+from app.data_loader import (
+    read_csv_file,
+    apply_normalized_columns,
+    dataframe_to_rows
 )
 
 
 def main():
-    # connect to database
-    conn = get_connection("app_data.db")
+    # 1. Read the CSV file
+    df = read_csv_file("data/sample.csv")
 
-    # create a test table
-    create_table_sql = """
-    CREATE TABLE IF NOT EXISTS test_people (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT,
-        age INTEGER
-    )
-    """
-    execute_non_query(conn, create_table_sql)
+    # 2. Show original columns
+    print("Original columns:")
+    print(list(df.columns))
 
-    # 3. Insert a sample row
-    insert_sql = "INSERT INTO test_people (name, age) VALUES (?, ?)"
-    execute_non_query(conn, insert_sql, ("Alice", 25))
+    # 3. Normalize columns
+    df = apply_normalized_columns(df)
 
-    # 4. Query the table
-    select_sql = "SELECT * FROM test_people"
-    rows = execute_query(conn, select_sql)
+    # 4. Show normalized columns
+    print("\nNormalized columns:")
+    print(list(df.columns))
 
-    # 5. Print results
-    print("Query Results:")
+    # 5. Convert DataFrame to row tuples
+    rows = dataframe_to_rows(df)
+
+    # 6. Print rows
+    print("\nRows:")
     for row in rows:
         print(row)
-
-    # 6. Close connection
-    close_connection(conn)
 
 
 if __name__ == "__main__":
