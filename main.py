@@ -1,42 +1,56 @@
-# entry point, start cli
-
-from app.data_loader import read_csv_file, apply_normalized_columns
-from app.schema_manager import (
-    infer_column_types,
-    build_create_table_sql,
-    get_existing_tables,
-    get_table_schema,
-    schemas_match
+from app.data_loader import read_csv_file, apply_normalized_columns, dataframe_to_rows
+from app.schema_manager import infer_column_types, build_create_table_sql
+from app.db import (
+    get_connection,
+    execute_non_query,
+    execute_query,
+    insert_rows,
+    close_connection
 )
-from app.db import get_connection, execute_non_query, close_connection
 
 
 def main():
+    table_name = "people"
+
+    # 1. Read and prepare CSV
     df = read_csv_file("data/sample.csv")
     df = apply_normalized_columns(df)
 
+    print("Normalized columns:")
+    print(list(df.columns))
+
+    # 2. Infer schema
     csv_schema = infer_column_types(df)
-    print("Inferred CSV schema:")
+    print("\nInferred schema:")
     print(csv_schema)
 
-    table_name = "people"
+    # 3. Build CREATE TABLE SQL
     create_sql = build_create_table_sql(table_name, csv_schema)
     print("\nCreate table SQL:")
     print(create_sql)
 
+    # 4. Connect to database
     conn = get_connection("app_data.db")
+
+    # 5. Create table
     execute_non_query(conn, create_sql)
 
-    print("\nExisting tables:")
-    print(get_existing_tables(conn))
+    # 6. Convert DataFrame to rows
+    rows = dataframe_to_rows(df)
+    print("\nRows to insert:")
+    for row in rows:
+        print(row)
 
-    db_schema = get_table_schema(conn, table_name)
-    print("\nDatabase schema:")
-    print(db_schema)
+    # 7. Insert rows
+    insert_rows(conn, table_name, list(df.columns), rows)
 
-    print("\nSchemas match:")
-    print(schemas_match(csv_schema, db_schema))
+    # 8. Query data back out
+    results = execute_query(conn, f"SELECT * FROM {table_name};")
+    print("\nRows in database:")
+    for result in results:
+        print(result)
 
+    # 9. Close connection
     close_connection(conn)
 
 

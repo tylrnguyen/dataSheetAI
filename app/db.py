@@ -19,5 +19,17 @@ def execute_query(conn, sql: str, params: tuple = ()):
     results = cursor.fetchall()
     return results
 
+def build_insert_sql(table_name, columns):
+    cols_sql = ", ".join(columns)
+    placeholders = ", ".join(["?"] * len(columns))
+    insert_sql = f"INSERT INTO {table_name} ({cols_sql}) VALUES ({placeholders});"
+    return insert_sql
+
+def insert_rows(conn, table_name, columns, rows): 
+    insert_sql = build_insert_sql(table_name, columns)
+    cursor = conn.cursor()
+    cursor.executemany(insert_sql, rows)
+    conn.commit()
+
 def close_connection(conn):
     conn.close()
