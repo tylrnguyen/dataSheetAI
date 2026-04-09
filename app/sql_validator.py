@@ -25,9 +25,18 @@ def extract_column_names(sql):
     return []
 
 def validate_sql_query(sql, db_schema):
+    if not sql or not sql.strip():
+        return False, "Empty query is not allowed"
+    
+    if has_multiple_statements(sql):
+        return False, "Multiple statements are not allowed"
+    
+    if contains_forbidden_keywords(sql):
+        return False, "Query contains forbidden keywords"
+
     if not is_select_query(sql):
         return False, "Only SELECT queries are allowed"
-
+    
     table_names = extract_table_names(sql)
     if not table_names:
         return False, "No valid table found in query"
@@ -52,3 +61,19 @@ def validate_sql_query(sql, db_schema):
             return False, f"Unknown column: {column}"
 
     return True, "Valid query"
+
+# helpers 
+def has_multiple_statements(sql): 
+    # check for multiple statements by looking for semicolons
+    stripped = sql.strip()
+    if stripped.endswith(";"):
+        stripped = stripped[:-1]
+    return ";" in stripped
+
+def contains_forbidden_keywords(sql):
+    forbidden_keywords = ["INSERT", "UPDATE", "DELETE", "DROP", "ALTER", "CREATE"]
+    sql_upper = sql.upper()
+    for keyword in forbidden_keywords:
+        if keyword in sql_upper:
+            return True
+    return False
