@@ -19,5 +19,13 @@ def run_sql_query(conn, sql, db_schema):
 
 def run_nlq(conn, nlq, db_schema): 
     # take a natural language query, generate SQL, validate it, and execute it
-    sql = generate_sql(nlq, db_schema)
-    return run_sql_query(conn, sql, db_schema)
+    try:
+        sql = generate_sql(nlq, db_schema)
+    except Exception as e:
+        return False, f"Failed to generate SQL: {e}", None
+
+    if not sql or not sql.strip():
+        return False, "Generated SQL is empty", sql
+
+    success, result = run_sql_query(conn, sql, db_schema)
+    return success, result, sql
