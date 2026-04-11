@@ -1,4 +1,5 @@
 # dataSheetAI
+[video demo](https://drive.google.com/drive/folders/1uP6_VMoyWSqRn_DTeORGrQiVNl6Z-5Bd?usp=drive_link)
 
 dataSheetAI is a command-line application that ingests CSV files into SQLite and lets users query data in two ways:
 
